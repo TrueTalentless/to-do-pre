@@ -12,7 +12,7 @@ const formElement = document.querySelector(".to-do__form");
 const inputElement = document.querySelector(".to-do__input");
 const templateElement = document.getElementById("to-do__item-template");
 
-function loadTasks() {
+const loadTasks = () => {
   const storedTasks = localStorage.getItem("tasks");
   if (storedTasks) {
     return JSON.parse(storedTasks);
@@ -20,7 +20,12 @@ function loadTasks() {
   return items;
 }
 
-function createItem(item) {
+const saveCurrentTasks = () => {
+  const currentItems = getTasksFromDOM();
+  saveTasks(currentItems);
+}
+
+const createItem = (item) => {
   const clone = templateElement.content.querySelector(".to-do__item").cloneNode(true);
   const textElement = clone.querySelector(".to-do__item-text");
   const deleteButton = clone.querySelector(".to-do__item-button_type_delete");
@@ -31,15 +36,13 @@ function createItem(item) {
 
   deleteButton.addEventListener("click", () => {
     clone.remove();
-    const currentItems = getTasksFromDOM();
-    saveTasks(currentItems);
+    saveCurrentTasks();
   });
 
   duplicateButton.addEventListener("click", () => {
     const newItem = createItem(textElement.textContent);
     listElement.prepend(newItem);
-    const currentItems = getTasksFromDOM();
-    saveTasks(currentItems);
+    saveCurrentTasks();
   });
 
   editButton.addEventListener("click", () => {
@@ -49,14 +52,13 @@ function createItem(item) {
 
   textElement.addEventListener("blur", () => {
     textElement.contentEditable = "false";
-    const currentItems = getTasksFromDOM();
-    saveTasks(currentItems);
+    saveCurrentTasks();
   });
 
   return clone;
 }
 
-function getTasksFromDOM() {
+const getTasksFromDOM = () => {
   const itemsNamesElements = document.querySelectorAll(".to-do__item-text");
   const tasks = [];
   itemsNamesElements.forEach((item) => {
@@ -65,7 +67,7 @@ function getTasksFromDOM() {
   return tasks;
 }
 
-function saveTasks(tasks) {
+const saveTasks = (tasks) => {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
@@ -76,9 +78,11 @@ items.forEach((item) => {
 
 formElement.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  const text = inputElement.value;
+  const text = inputElement.value.trim();
+  if (text === "") {
+    return;
+  }
   listElement.prepend(createItem(text));
-  const currentItems = getTasksFromDOM();
-  saveTasks(currentItems);
+  saveCurrentTasks();
   inputElement.value = "";
 });
